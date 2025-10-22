@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rúbricas de Evaluación Docente</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px 0;
+        }
+        .rubric-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+        .rubric-title {
+            color: #0d6efd;
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .table th {
+            background-color: #f1f8ff;
+        }
+        .level-min {
+            background-color: #ffe6e6;
+        }
+        .level-acceptable {
+            background-color: #fff9e6;
+        }
+        .level-optimal {
+            background-color: #e6ffe6;
+        }
+        .criteria-col {
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-5">Rúbricas de Evaluación Docente</h1>
+        
+        <!-- Rúbrica 1 - ENGAGEMENT -->
+        <div class="rubric-container">
+            <h2 class="rubric-title">Rúbrica 1 — ENGAGEMENT (atención estimulada por el docente)</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th class="criteria-col">Criterio observable</th>
+                            <th>1 — Mínimo</th>
+                            <th>3 — Aceptable</th>
+                            <th>5 — Óptimo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Gatillos atencionales (preguntas, cambios visuales, mini-retos, "pausas activas")</td>
+                            <td class="level-min">0–1 por 5 min; monólogo plano</td>
+                            <td class="level-acceptable">2–3 por 5 min; algunos llamados a pensar/observar</td>
+                            <td class="level-optimal">≥5 por 5 min; secuencia de preguntas/retos bien dosificada</td>
+                        </tr>
+                        <tr>
+                            <td>Relevancia de ejemplos/analogías</td>
+                            <td class="level-min">Ejemplos escasos o fuera de contexto</td>
+                            <td class="level-acceptable">Ejemplos adecuados pero genéricos</td>
+                            <td class="level-optimal">Ejemplos concretos, actuales y conectados al perfil del estudiante</td>
+                        </tr>
+                        <tr>
+                            <td>Señales de participación dirigida (encuestas, tareas breves, indicaciones de "pausa y haz X")</td>
+                            <td class="level-min">Ninguna</td>
+                            <td class="level-acceptable">1 indicación clara en el segmento</td>
+                            <td class="level-optimal">≥2 indicaciones con instrucciones operativas (qué y cuánto tiempo)</td>
+                        </tr>
+                        <tr>
+                            <td>Variación de estímulos (visual/sonoro)</td>
+                            <td class="level-min">Lámina estática + voz monótona</td>
+                            <td class="level-acceptable">Algún cambio de lámina o demo</td>
+                            <td class="level-optimal">Cambios rítmicos de recursos (demo, pizarra, resaltados, clips breves)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Rúbrica 2 - CLARIDAD COMUNICATIVA -->
+        <div class="rubric-container">
+            <h2 class="rubric-title">Rúbrica 2 — CLARIDAD COMUNICATIVA (comprensión del mensaje)</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th class="criteria-col">Criterio observable</th>
+                            <th>1 — Mínimo</th>
+                            <th>3 — Aceptable</th>
+                            <th>5 — Óptimo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Audio y dicción</td>
+                            <td class="level-min">Ruido, volumen inestable; difícil de entender</td>
+                            <td class="level-acceptable">Comprensible con pequeñas interferencias</td>
+                            <td class="level-optimal">Audio limpio; dicción nítida y tempo adecuado</td>
+                        </tr>
+                        <tr>
+                            <td>Señalización verbal (metadiscurso: "primero", "en síntesis", "esto significa...")</td>
+                            <td class="level-min">No orienta el recorrido</td>
+                            <td class="level-acceptable">Algunas marcas de organización</td>
+                            <td class="level-optimal">Señalización consistente que guía al estudiante paso a paso</td>
+                        </tr>
+                        <tr>
+                            <td>Precisión terminológica y definiciones</td>
+                            <td class="level-min">Ambigüedades; acrónimos sin definir</td>
+                            <td class="level-acceptable">Define conceptos clave</td>
+                            <td class="level-optimal">Define términos y contrasta con contraejemplos/errores comunes</td>
+                        </tr>
+                        <tr>
+                            <td>Carga visual por lámina (legibilidad)</td>
+                            <td class="level-min">Saturación de texto; letra pequeña</td>
+                            <td class="level-acceptable">Texto moderado; legible</td>
+                            <td class="level-optimal">Visuales limpios; bullets breves; énfasis/resaltado intencional</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Rúbrica 3 - ESTRUCTURA PEDAGÓGICA -->
+        <div class="rubric-container">
+            <h2 class="rubric-title">Rúbrica 3 — ESTRUCTURA PEDAGÓGICA (diseño instruccional)</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th class="criteria-col">Criterio observable</th>
+                            <th>1 — Mínimo</th>
+                            <th>3 — Aceptable</th>
+                            <th>5 — Óptimo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Apertura (objetivos & mapa de ruta)</td>
+                            <td class="level-min">Sin objetivos ni agenda</td>
+                            <td class="level-acceptable">Declara 1–2 objetivos o agenda general</td>
+                            <td class="level-optimal">Objetivos medibles + agenda con tiempos/etapas</td>
+                        </tr>
+                        <tr>
+                            <td>Secuencia lógica & transiciones</td>
+                            <td class="level-min">Saltos de tema; regresos confusos</td>
+                            <td class="level-acceptable">Flujo mayormente lógico con alguna transición</td>
+                            <td class="level-optimal">Progresión clara (de simple a complejo) con transiciones explícitas</td>
+                        </tr>
+                        <tr>
+                            <td>Práctica guiada / chequeo de comprensión</td>
+                            <td class="level-min">No hay verificación</td>
+                            <td class="level-acceptable">1 pregunta de chequeo o ejercicio breve</td>
+                            <td class="level-optimal">≥2 chequeos con feedback orientativo o rúbrica simple</td>
+                        </tr>
+                        <tr>
+                            <td>Cierre (resumen & próximos pasos)</td>
+                            <td class="level-min">Termina abruptamente</td>
+                            <td class="level-acceptable">Resumen básico</td>
+                            <td class="level-optimal">Síntesis estructurada + tarea/lectura/quiz sugerido</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Rúbrica 4 - DINAMISMO / TONO MOTIVACIONAL -->
+        <div class="rubric-container">
+            <h2 class="rubric-title">Rúbrica 4 — DINAMISMO / TONO MOTIVACIONAL (energía y autoeficacia)</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th class="criteria-col">Criterio observable</th>
+                            <th>1 — Mínimo</th>
+                            <th>3 — Aceptable</th>
+                            <th>5 — Óptimo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Prosodia (tono, volumen, ritmo)</td>
+                            <td class="level-min">Monotonía evidente; ritmo plano</td>
+                            <td class="level-acceptable">Variación ocasional</td>
+                            <td class="level-optimal">Variación intencional que enfatiza ideas clave y mantiene ritmo</td>
+                        </tr>
+                        <tr>
+                            <td>Lenguaje motivacional (autoeficacia)</td>
+                            <td class="level-min">Ausente o distante</td>
+                            <td class="level-acceptable">Refuerzos genéricos ("bien hecho")</td>
+                            <td class="level-optimal">Mensajes específicos: "si sigues estos 3 pasos, lo logras", normaliza errores</td>
+                        </tr>
+                        <tr>
+                            <td>Presencia escénica (mirada/cámara, gestos)</td>
+                            <td class="level-min">Evita cámara; postura cerrada</td>
+                            <td class="level-acceptable">Contacto limitado; gestos moderados</td>
+                            <td class="level-optimal">Mirada a cámara regular; gestos naturales que apoyan el contenido</td>
+                        </tr>
+                        <tr>
+                            <td>Uso de recursos para dinamizar (pizarra, demo, anotaciones)</td>
+                            <td class="level-min">No usa recursos</td>
+                            <td class="level-acceptable">Algún recurso ocasional</td>
+                            <td class="level-optimal">Recursos variados integrados a la explicación (no decorativos)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

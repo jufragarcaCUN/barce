@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Árbol de Decisión - Sistema de Clasificación</title>
+    <style>
+      :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --light-color: #ecf0f1;
+        --dark-color: #34495e;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background-color: #f5f7fa;
+        color: var(--primary-color);
+        line-height: 1.6;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: linear-gradient(
+          135deg,
+          var(--secondary-color),
+          var(--primary-color)
+        );
+        color: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+      }
+
+      .description {
+        font-size: 1.1rem;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      .legend {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        margin-right: 15px;
+      }
+
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        margin-right: 8px;
+      }
+
+      /* Estilos del Árbol de Decisión */
+      .decision-tree {
+        font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+        line-height: 1.35;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 40px;
+      }
+
+      .level {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin: 16px 0;
+      }
+
+      .node {
+        background-color: white;
+        border-radius: 14px;
+        padding: 12px 16px;
+        margin: 0 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        text-align: center;
+        min-width: 200px;
+        position: relative;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 1px solid #eee;
+        max-width: 760px;
+      }
+
+      .node:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .node-question {
+        border-left: 6px solid #0d6efd;
+        background-color: var(--secondary-color);
+        color: white;
+        font-weight: bold;
+      }
+
+      .node-result {
+        border-left: 6px solid #198754;
+        background-color: var(--success-color);
+        color: white;
+      }
+
+      .node-special {
+        border-left: 6px solid #6f42c1;
+        background-color: var(--warning-color);
+        color: white;
+      }
+
+      .branches {
+        display: flex;
+        gap: 24px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin: 10px 0 22px;
+      }
+
+      .branch {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .branch-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #0f5132;
+        background: #d1e7dd;
+        border: 1px solid #badbcc;
+        padding: 2px 10px;
+        border-radius: 999px;
+        margin: 10px 0;
+      }
+
+      .badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #198754;
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 999px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      }
+
+      /* Bloque de metadatos (visible) */
+      .meta-block {
+        margin-top: 10px;
+        border: 1px dashed #e2e8f0;
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 10px 12px;
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: 170px 1fr;
+        gap: 10px 16px;
+        align-items: flex-start;
+      }
+
+      .k {
+        color: #64748b;
+        font-weight: 700;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .chip {
+        background: #eef2f7;
+        border: 1px solid #d8e0ea;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+      }
+
+      .example {
+        color: #334155;
+      }
+
+      .meta-head {
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 6px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .controls {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin: 20px 0;
+      }
+
+      .controls button {
+        border-radius: 10px;
+        padding: 8px 12px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        cursor: pointer;
+      }
+
+      .controls button:hover {
+        background: #f8fafc;
+      }
+
+      /* Estilos de Ejemplos */
+      .examples {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .example-card {
+        border-left: 4px solid var(--secondary-color);
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: var(--light-color);
+      }
+
+      .example-text {
+        font-style: italic;
+        margin-bottom: 10px;
+      }
+
+      .example-result {
+        font-weight: bold;
+      }
+
+      .high-value {
+        color: var(--success-color);
+      }
+
+      .low-value {
+        color: var(--danger-color);
+      }
+
+      /* Estilos de Controles */
+      button {
+        padding: 10px 20px;
+        background-color: var(--secondary-color);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      button:hover {
+        background-color: var(--primary-color);
+      }
+
+      /* Estilos de la Tabla */
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-bottom: 40px;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid #ddd;
+      }
+
+      th {
+        background-color: #f2f2f2;
+      }
+
+      /* Estilos del Árbol de Comentarios */
+      .comment-tree {
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 40px;
+      }
+
+      .categories {
+        flex: 1;
+        min-width: 300px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      .category-list {
+        list-style-type: none;
+      }
+
+      .category-item {
+        background: white;
+        margin-bottom: 10px;
+        padding: 15px;
+        border-radius: 6px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid var(--secondary-color);
+        transition: transform 0.2s;
+      }
+
+      .category-item:hover {
+        transform: translateX(5px);
+      }
+
+      .category-priority {
+        display: inline-block;
+        background: var(--secondary-color);
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 24px;
+        margin-right: 10px;
+        font-size: 0.9rem;
+      }
+
+      .category-name {
+        font-weight: bold;
+      }
+
+      .category-description {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        margin-top: 5px;
+      }
+
+      .tree-node {
+        margin-bottom: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+
+      .node-answers {
+        padding: 15px 20px;
+      }
+
+      .answer {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .answer:hover {
+        background: #f1f8ff;
+      }
+
+      .answer-yes {
+        border-left: 4px solid var(--success-color);
+      }
+
+      .answer-no {
+        border-left: 4px solid var(--danger-color);
+      }
+
+      .answer-icon {
+        margin-right: 10px;
+        font-weight: bold;
+      }
+
+      .result {
+        padding: 15px 20px;
+        border-radius: 6px;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      .result-high {
+        background: #d5f4e6;
+        color: var(--success-color);
+        border-left: 4px solid var(--success-color);
+      }
+
+      .result-low {
+        background: #fdeaea;
+        color: var(--danger-color);
+        border-left: 4px solid var(--danger-color);
+      }
+
+      /* Estilos para la sección de cálculo de puntuación */
+      .input-group {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      .input-group input {
+        margin-left: 10px;
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      .resultado {
+        margin-top: 20px;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        text-align: center;
+      }
+
+      .score {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 10px 0;
+      }
+
+      .nivel {
+        font-size: 1.2rem;
+        font-weight: bold;
+      }
+
+      /* Media Queries */
+      @media (max-width: 768px) {
+        .level,
+        .branches {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .node {
+          margin-bottom: 20px;
+        }
+
+        .categories {
+          margin-right: 0;
+          margin-bottom: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Sección 1: Clasificación de Contenido -->
+      <header>
+        <h1>Sistema de Clasificación Visual</h1>
+        <p class="description">
+          Árbol de decisión para categorizar contenido según su intención
+        </p>
+      </header>
+
+      <div class="legend">
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--secondary-color)"
+          ></div>
+          <span>Pregunta de Decisión</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--success-color)"
+          ></div>
+          <span>Resultado Final</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--warning-color)"
+          ></div>
+          <span>Regla Especial</span>
+        </div>
+      </div>
+
+      <!-- Tabla de Categorías -->
+      <table>
+        <thead>
+          <tr>
+            <th>PRIORIDAD</th>
+            <th>INTENCION</th>
+            <th>REGLA DE DECISIÓN</th>
+            <th>PALABRAS CLAVE</th>
+            <th>EJEMPLO</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><strong>PROMOCIÓN DE BENEFICIOS</strong></td>
+            <td>
+              Llamado directo a matrícula/inscripción + beneficio económico
+            </td>
+            <td>"solo 10%", "beca", "descuento", "financiación"</td>
+            <td>
+              "¡La serie de tu vida comienza en la CUN! Con CT AYUDA, solo
+              necesitas el 10%..."
+            </td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><strong>CAPTACIÓN ACADÉMICA</strong></td>
+            <td>Llamado directo a matrícula/inscripción sin beneficio</td>
+            <td>"matricúlate", "inscríbete", "estudia", "descubre"</td>
+            <td>
+              "¿Por qué estudiar Administración en IBERO? Descubre todo tu
+              potencial"
+            </td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><strong>SERVICIOS ESTUDIANTILES</strong></td>
+            <td>Postulación laboral u oferta de servicios universitarios</td>
+            <td>"servicio", "apoyo", "vacantes", "empleo", "trabajo"</td>
+            <td>
+              "#trabajosihay Nuestras vacantes esperan por ti. Pregunta por
+              servicios de CUNwork"
+            </td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><strong>EVENTOS Y ACTIVIDADES</strong></td>
+            <td>Anuncia fecha/evento específico o registro a actividades</td>
+            <td>Fechas, horas, "evento", "taller", "charla", "participa"</td>
+            <td>
+              "¡Alerta! El 14 de mayo, a las 3:00 P.M. Bogotá será el epicentro
+              del evento académico"
+            </td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><strong>CELEBRACIÓN INSTITUCIONAL</strong></td>
+            <td>
+              Logro/reconocimiento de estudiantes, egresados, docentes o
+              institución
+            </td>
+            <td>
+              "logro", "premio", "acreditación", "felicitaciones", "orgullo"
+            </td>
+            <td>
+              "#EnModoAcreditados - Hemos obtenido la acreditación de alta
+              calidad"
+            </td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td><strong>CONTENIDO EDUCATIVO</strong></td>
+            <td>Contenido educativo/práctico, tips, herramientas, consejos</td>
+            <td>"tips", "herramientas", "consejo", "método", "aprende"</td>
+            <td>
+              "El Método CORNELL es la herramienta perfecta para mejorar tus
+              apuntes"
+            </td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td><strong>FIDELIZACIÓN COMUNITARIA</strong></td>
+            <td>
+              Se dirige específicamente a egresados, docentes o estudiantes
+              actuales
+            </td>
+            <td>"egresados", "docentes", "comunidad", "alumni", "graduados"</td>
+            <td>
+              "#ComunidadAlumni - ¡Egresado IBERO, es momento de volvernos a
+              encontrar!"
+            </td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td><strong>POSICIONAMIENTO DE MARCA</strong></td>
+            <td>Refuerza identidad/valores institucionales</td>
+            <td>"somos", "valores", "identidad", "diferentes", "marca"</td>
+            <td>"MakingOff 2024. Somos Diferentes, Somos Poli. Somos País"</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td><strong>INTERNACIONALIZACIÓN</strong></td>
+            <td>Elementos explícitamente internacionales (regla especial)</td>
+            <td>
+              "internacional", "global", "países", "intercambio", "Brasil"
+            </td>
+            <td>
+              "¡Conoce a Gabriel Oliveira Diniz, de Brasil! Está haciendo
+              prácticas internacionales"
+            </td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td><strong>ENGAGEMENT EMOCIONAL</strong></td>
+            <td>
+              Ninguna de las anteriores - contenido emocional, preguntas
+              abiertas
+            </td>
+            <td>"qué piensas", "comparte", "emoción", "momento especial"</td>
+            <td>
+              "¿Y para ti, qué canción representa ese momento tan especial?
+              #grados"
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Árbol de Decisión -->
+      <div class="decision-tree">
+        <!-- Nivel 1 -->
+        <div class="level">
+          <div class="node node-question">¿TIENE LLAMADO DIRECTO A ACCIÓN?</div>
+        </div>
+        <div class="branches">
+          <div class="branch">
+            <div class="branch-label">SÍ</div>
+            <div class="node node-question">¿Es MATRÍCULA/INSCRIPCIÓN?</div>
+            <div class="branches">
+              <div class="branch">
+                <div class="branch-label">SÍ</div>
+                <div class="node node-question">¿Incluye BECA/DESCUENTO?</div>
+                <!-- RESULTADO 1 -->
+                <div class="node node-result">
+                  PROMOCIÓN DE BENEFICIOS
+                  <span class="badge">P1</span>
+                  <div class="meta-block">
+                    <div class="meta-head">
+                      Intención: <strong>PROMOCIÓN DE BENEFICIOS</strong>
+                      <span style="color: #198754">[Prioridad P1]</span>
+                    </div>
+                    <div class="meta-grid">
+                      <div class="k">Regla de decisión</div>
+                      <div>
+                        Llamado directo a matrícula/inscripción + beneficio
+                        económico
+                      </div>
+                      <div class="k">Palabras clave</div>
+                      <div class="chips">
+                        <span class="chip">solo 10%</span
+                        ><span class="chip">beca</span
+                        ><span class="chip">descuento</span
+                        ><span class="chip">financiación</span>
+                      </div>
+                      <div class="k">Ejemplo</div>
+                      <div class="example">
+                        "¡La serie de tu vida comienza en la CUN! Con CT AYUDA,
+                        solo necesitas el 10%..."
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="branch">
+                <div class="branch-label">NO</div>
+                <div class="node node-question">
+                  ¿Es llamado directo a inscribirse?
+                </div>
+                <!-- RESULTADO 2 -->
+                <div class="node node-result">
+                  CAPTACIÓN ACADÉMICA
+                  <span class="badge">P2</span>
+                  <div class="meta-block">
+                    <div class="meta-head">
+                      Intención: <strong>CAPTACIÓN ACADÉMICA</strong>
+                      <span style="color: #198754">[Prioridad P2]</span>
+                    </div>
+                    <div class="meta-grid">
+                      <div class="k">Regla de decisión</div>
+                      <div>
+                        Llamado directo a matrícula/inscripción sin beneficio
+                      </div>
+                      <div class="k">Palabras clave</div>
+                      <div class="chips">
+                        <span class="chip">matricúlate</span
+                        ><span class="chip">inscríbete</span
+                        ><span class="chip">estudia</span
+                        ><span class="chip">descubre</span>
+                      </div>
+                      <div class="k">Ejemplo</div>
+                      <div class="example">
+                        "¿Por qué estudiar Administración en IBERO? Descubre
+                        todo tu potencial"
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="branch">
+            <div class="branch-label">NO</div>
+            <div class="node node-question">Pasar al Nivel 1.5</div>
+          </div>
+        </div>
+
+        <!-- Nivel 1.5 -->
+        <div class="level">
+          <div class="node node-question">
+            ¿ANUNCIA ALGÚN BENEFICIO INSTITUCIONAL?
+          </div>
+        </div>
+        <div class="branches">
+          <div class="branch">
+            <div class="branch-label">SÍ</div>
+            <!-- RESULTADO 3 -->
+            <div class="node node-result">
+              SERVICIOS ESTUDIANTILES
+              <span class="badge">P3</span>
+              <div class="meta-block">
+                <div class="meta-head">
+                  Intención: <strong>SERVICIOS ESTUDIANTILES</strong>
+                  <span style="color: #198754">[Prioridad P3]</span>
+                </div>
+                <div class="meta-grid">
+                  <div class="k">Regla de decisión</div>
+                  <div>
+                    Postulación laboral u oferta de servicios universitarios
+                  </div>
+                  <div class="k">Palabras clave</div>
+                  <div class="chips">
+                    <span class="chip">servicio</span
+                    ><span class="chip">apoyo</span
+                    ><span class="chip">vacantes</span
+                    ><span class="chip">empleo</span
+                    ><span class="chip">trabajo</span>
+                  </div>
+                  <div class="k">Ejemplo</div>
+                  <div class="example">
+                    "#trabajosihay Nuestras vacantes esperan por ti. Pregunta
+                    por servicios de CUNwork"
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="branch">
+            <div class="branch-label">NO</div>
+            <div class="node node-question">Pasar al Nivel 2</div>
+          </div>
+        </div>
+
+        <!-- Nivel 2 -->
+        <div class="level">
+          <div class="node node-question">
+            ¿ANUNCIA FECHA/EVENTO ESPECÍFICO?
+          </div>
+        </div>
+        <div class="branches">
+          <div class="branch">
+            <div class="branch-label">SÍ</div>
+            <!-- RESULTADO 4 -->
+            <div class="node node-result">
+              EVENTOS Y ACTIVIDADES
+              <span class="badge">P4</span>
+              <div class="meta-block">
+                <div class="meta-head">
+                  Intención: <strong>EVENTOS Y ACTIVIDADES</strong>
+                  <span style="color: #198754">[Prioridad P4]</span>
+                </div>
+                <div class="meta-grid">
+                  <div class="k">Regla de decisión</div>
+                  <div>
+                    Anuncia fecha/evento específico o registro a actividades
+                  </div>
+                  <div class="k">Palabras clave</div>
+                  <div class="chips">
+                    <span class="chip">fechas</span
+                    ><span class="chip">horas</span
+                    ><span class="chip">evento</span
+                    ><span class="chip">taller</span
+                    ><span class="chip">charla</span
+                    ><span class="chip">participa</span>
+                  </div>
+                  <div class="k">Ejemplo</div>
+                  <div class="example">
+                    "¡Alerta! El 14 de mayo, a las 3:00 P.M. Bogotá será el
+                    epicentro del evento académico"
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="branch">
+            <div class="branch-label">NO</div>
+            <div class="node node-question">Pasar al Nivel 3</div>
+          </div>
+        </div>
+
+        <!-- Nivel 3 -->
+        <div class="level">
+          <div class="node node-question">¿ES LOGRO/RECONOCIMIENTO?</div>
+        </div>
+        <div class="branches">
+          <div class="branch">
+            <div class="branch-label">SÍ</div>
+            <!-- RESULTADO 5 -->
+            <div class="node node-result">
+              CELEBRACIÓN INSTITUCIONAL
+              <span class="badge">P5</span>
+              <div class="meta-block">
+                <div class="meta-head">
+                  Intención: <strong>CELEBRACIÓN INSTITUCIONAL</strong>
+                  <span style="color: #198754">[Prioridad P5]</span>
+                </div>
+                <div class="meta-grid">
+                  <div class="k">Regla de decisión</div>
+                  <div>
+                    Logro/reconocimiento de estudiantes, egresados, docentes o
+                    institución
+                  </div>
+                  <div class="k">Palabras clave</div>
+                  <div class="chips">
+                    <span class="chip">logro</span
+                    ><span class="chip">premio</span
+                    ><span class="chip">acreditación</span
+                    ><span class="chip">felicitaciones</span
+                    ><span class="chip">orgullo</span>
+                  </div>
+                  <div class="k">Ejemplo</div>
+                  <div class="example">
+                    "#EnModoAcreditados - Hemos obtenido la acreditación de alta
+                    calidad"
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="branch">
+            <div class="branch-label">NO</div>
+            <div class="node node-question">Pasar al Nivel 4</div>
+          </div>
+        </div>
+
+        <!-- Regla Especial -->
+        <div class="level">
+          <div class="node node-special">
+            ¿TIENE ELEMENTOS EXPLÍCITAMENTE INTERNACIONALES?
+          </div>
+        </div>
+        <div class="branches">
+          <div class="branch">
+            <div class="branch-label">SÍ</div>
+            <!-- RESULTADO 9 -->
+            <div class="node node-result">
+              INTERNACIONALIZACIÓN
+              <span class="badge">P9</span>
+              <div class="meta-block">
+                <div class="meta-head">
+                  Intención: <strong>INTERNACIONALIZACIÓN</strong>
+                  <span style="color: #198754">[Prioridad P9]</span>
+                </div>
+                <div class="meta-grid">
+                  <div class="k">Regla de decisión</div>
+                  <div>
+                    Elementos explícitamente internacionales (regla especial)
+                  </div>
+                  <div class="k">Palabras clave</div>
+                  <div class="chips">
+                    <span class="chip">internacional</span
+                    ><span class="chip">global</span
+                    ><span class="chip">países</span
+                    ><span class="chip">intercambio</span
+                    ><span class="chip">Brasil</span>
+                  </div>
+                  <div class="k">Ejemplo</div>
+                  <div class="example">
+                    "¡Conoce a Gabriel Oliveira Diniz, de Brasil! Está haciendo
+                    prácticas internacionales"
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="branch">
+            <div class="branch-label">NO</div>
+            <div class="node">Seguir árbol principal</div>
+          </div>
+        </div>
+
+        <!-- Niveles Adicionales (con resultados 6, 7, 8) -->
+        <div class="level">
+          <div class="node node-question">
+            ¿OFRECE SERVICIO/APOYO UNIVERSITARIO?
+          </div>
+        </div>
+        <div class="branches">
+          <div class="branch">
+            <div class="branch-label">SÍ</div>
+            <!-- ya cubierto por P3 arriba; se podría redirigir -->
+            <div class="node">Ver SERVICIOS ESTUDIANTILES (P3)</div>
+          </div>
+          <div class="branch">
+            <div class="branch-label">NO</div>
+            <div class="node node-question">
+              ¿ES CONTENIDO EDUCATIVO/PRÁCTICO?
+            </div>
+          </div>
+        </div>
+
+        <div class="branches">
+          <div class="branch">
+            <div class="branch-label">SÍ</div>
+            <!-- RESULTADO 6 -->
+            <div class="node node-result">
+              CONTENIDO EDUCATIVO
+              <span class="badge">P6</span>
+              <div class="meta-block">
+                <div class="meta-head">
+                  Intención: <strong>CONTENIDO EDUCATIVO</strong>
+                  <span style="color: #198754">[Prioridad P6]</span>
+                </div>
+                <div class="meta-grid">
+                  <div class="k">Regla de decisión</div>
+                  <div>
+                    Contenido educativo/práctico, tips, herramientas, consejos
+                  </div>
+                  <div class="k">Palabras clave</div>
+                  <div class="chips">
+                    <span class="chip">tips</span
+                    ><span class="chip">herramientas</span
+                    ><span class="chip">consejo</span
+                    ><span class="chip">método</span
+                    ><span class="chip">aprende</span>
+                  </div>
+                  <div class="k">Ejemplo</div>
+                  <div class="example">
+                    "El Método CORNELL es la herramienta perfecta para mejorar
+                    tus apuntes"
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="branch">
+            <div class="branch-label">NO</div>
+            <div class="node node-question">
+              ¿SE DIRIGE A COMUNIDAD ESPECÍFICA?
+            </div>
+          </div>
+        </div>
+
+        <div class="branches">
+          <div class="branch">
+            <div class="branch-label">SÍ</div>
+            <!-- RESULTADO 7 -->
+            <div class="node node-result">
+              FIDELIZACIÓN COMUNITARIA
+              <span class="badge">P7</span>
+              <div class="meta-block">
+                <div class="meta-head">
+                  Intención: <strong>FIDELIZACIÓN COMUNITARIA</strong>
+                  <span style="color: #198754">[Prioridad P7]</span>
+                </div>
+                <div class="meta-grid">
+                  <div class="k">Regla de decisión</div>
+                  <div>
+                    Se dirige específicamente a egresados, docentes o
+                    estudiantes actuales
+                  </div>
+                  <div class="k">Palabras clave</div>
+                  <div class="chips">
+                    <span class="chip">egresados</span
+                    ><span class="chip">docentes</span
+                    ><span class="chip">comunidad</span
+                    ><span class="chip">alumni</span
+                    ><span class="chip">graduados</span>
+                  </div>
+                  <div class="k">Ejemplo</div>
+                  <div class="example">
+                    "#ComunidadAlumni - ¡Egresado IBERO, es momento de volvernos
+                    a encontrar!"
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="branch">
+            <div class="branch-label">NO</div>
+            <div class="node node-question">¿REFUERZA IDENTIDAD/VALORES?</div>
+          </div>
+        </div>
+
+        <div class="branches">
+          <div class="branch">
+            <div class="branch-label">SÍ</div>
+            <!-- RESULTADO 8 -->
+            <div class="node node-result">
+              POSICIONAMIENTO DE MARCA
+              <span class="badge">P8</span>
+              <div class="meta-block">
+                <div class="meta-head">
+                  Intención: <strong>POSICIONAMIENTO DE MARCA</strong>
+                  <span style="color: #198754">[Prioridad P8]</span>
+                </div>
+                <div class="meta-grid">
+                  <div class="k">Regla de decisión</div>
+                  <div>Refuerza identidad/valores institucionales</div>
+                  <div class="k">Palabras clave</div>
+                  <div class="chips">
+                    <span class="chip">somos</span
+                    ><span class="chip">valores</span
+                    ><span class="chip">identidad</span
+                    ><span class="chip">diferentes</span
+                    ><span class="chip">marca</span>
+                  </div>
+                  <div class="k">Ejemplo</div>
+                  <div class="example">
+                    "MakingOff 2024. Somos Diferentes, Somos Poli. Somos País"
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="branch">
+            <div class="branch-label">NO</div>
+            <!-- RESULTADO 10 (catch-all) -->
+            <div class="node node-result">
+              ENGAGEMENT EMOCIONAL
+              <span class="badge">P10</span>
+              <div class="meta-block">
+                <div class="meta-head">
+                  Intención: <strong>ENGAGEMENT EMOCIONAL</strong>
+                  <span style="color: #198754">[Prioridad P10]</span>
+                </div>
+                <div class="meta-grid">
+                  <div class="k">Regla de decisión</div>
+                  <div>
+                    Ninguna de las anteriores - contenido emocional, preguntas
+                    abiertas
+                  </div>
+                  <div class="k">Palabras clave</div>
+                  <div class="chips">
+                    <span class="chip">qué piensas</span
+                    ><span class="chip">comparte</span
+                    ><span class="chip">emoción</span
+                    ><span class="chip">momento especial</span>
+                  </div>
+                  <div class="k">Ejemplo</div>
+                  <div class="example">
+                    "¿Y para ti, qué canción representa ese momento tan
+                    especial? #grados"
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controles para mostrar/ocultar los bloques de detalle -->
+      <div class="controls">
+        <button onclick="expandAll()">Mostrar detalles</button>
+        <button onclick="collapseAll()">Ocultar detalles</button>
+        <button onclick="resetTree()">Reiniciar</button>
+      </div>
+
+      <!-- Sección 2: Clasificación de Comentarios -->
+      <header>
+        <h1>Árbol de Decisión para Clasificación de Comentarios</h1>
+        <p class="description">
+          Herramienta para evaluar si un comentario está alineado con la
+          categoría del post y determinar su valor
+        </p>
+      </header>
+
+      <div class="comment-tree">
+        <div class="categories">
+          <h2>Categorías de Posts</h2>
+          <ul class="category-list">
+            <!-- PROMOCIÓN DE BENEFICIOS -->
+            <li class="category-item">
+              <span class="category-priority">1</span>
+              <span class="category-name">PROMOCIÓN DE BENEFICIOS</span>
+              <p class="category-description">
+                Llamado directo a matrícula/inscripción + beneficio económico
+              </p>
+              <div class="decision-integrated">
+                <div class="node-question">
+                  ¿El comentario muestra INTENCIÓN DE MATRÍCULA/INSCRIPCIÓN?
+                </div>
+                <div class="node-answers">
+                  <div class="answer answer-yes">
+                    <span class="answer-icon">SÍ</span>ALTO VALOR (+20)
+                  </div>
+                  <div class="answer answer-no">
+                    <span class="answer-icon">NO</span>BAJO VALOR (+0/-2)
+                  </div>
+                </div>
+                <div class="result result-high">
+                  ALTO VALOR (+20) - Muestra intención concreta de matrícula o
+                  pregunta específica sobre beneficios
+                </div>
+                <div class="result result-low">
+                  BAJO VALOR (+0/-2) - Comentario genérico, queja no relacionada
+                  o sin intención específica
+                </div>
+              </div>
+            </li>
+
+            <!-- CAPTACIÓN ACADÉMICA -->
+            <li class="category-item">
+              <span class="category-priority">2</span>
+              <span class="category-name">CAPTACIÓN ACADÉMICA</span>
+              <p class="category-description">
+                Llamado directo a matrícula/inscripción sin beneficio
+              </p>
+              <div class="decision-integrated">
+                <div class="node-question">
+                  ¿El comentario muestra INTENCIÓN DE MATRÍCULA/INSCRIPCIÓN?
+                </div>
+                <div class="node-answers">
+                  <div class="answer answer-yes">
+                    <span class="answer-icon">SÍ</span>ALTO VALOR (+20)
+                  </div>
+                  <div class="answer answer-no">
+                    <span class="answer-icon">NO</span>BAJO VALOR (+0/-2)
+                  </div>
+                </div>
+                <div class="result result-high">
+                  ALTO VALOR (+20) - Muestra intención concreta de matrícula o
+                  pregunta específica sobre programas
+                </div>
+                <div class="result result-low">
+                  BAJO VALOR (+0/-2) - Comentario genérico, queja no relacionada
+                  o sin intención específica
+                </div>
+              </div>
+            </li>
+
+            <!-- SERVICIOS ESTUDIANTILES -->
+            <li class="category-item">
+              <span class="category-priority">3</span>
+              <span class="category-name">SERVICIOS ESTUDIANTILES</span>
+              <p class="category-description">
+                Postulación laboral u oferta de servicios universitarios
+              </p>
+              <div class="decision-integrated">
+                <div class="node-question">
+                  ¿El comentario pregunta sobre POSTULACIÓN/REQUISITOS/ACCESO al
+                  servicio?
+                </div>
+                <div class="node-answers">
+                  <div class="answer answer-yes">
+                    <span class="answer-icon">SÍ</span>ALTO VALOR (+20)
+                  </div>
+                  <div class="answer answer-no">
+                    <span class="answer-icon">NO</span>BAJO VALOR (+0)
+                  </div>
+                </div>
+                <div class="result result-high">
+                  ALTO VALOR (+20) - Pregunta específica sobre acceso o uso del
+                  servicio estudiantil
+                </div>
+                <div class="result result-low">
+                  BAJO VALOR (+0) - Comentario genérico sin relación específica
+                  con el servicio
+                </div>
+              </div>
+            </li>
+
+            <!-- EVENTOS Y ACTIVIDADES -->
+            <li class="category-item">
+              <span class="category-priority">4</span>
+              <span class="category-name">EVENTOS Y ACTIVIDADES</span>
+              <p class="category-description">
+                Anuncia fecha/evento específico o registro a actividades
+              </p>
+              <div class="decision-integrated">
+                <div class="node-question">
+                  ¿El comentario indica ASISTENCIA/REGISTRO/PARTICIPACIÓN en el
+                  evento?
+                </div>
+                <div class="node-answers">
+                  <div class="answer answer-yes">
+                    <span class="answer-icon">SÍ</span>ALTO VALOR (+20)
+                  </div>
+                  <div class="answer answer-no">
+                    <span class="answer-icon">NO</span>BAJO VALOR (+0)
+                  </div>
+                </div>
+                <div class="result result-high">
+                  ALTO VALOR (+20) - Demuestra intención concreta de
+                  participación o registro
+                </div>
+                <div class="result result-low">
+                  BAJO VALOR (+0) - Comentario genérico sobre el tema sin
+                  intención de asistir
+                </div>
+              </div>
+            </li>
+
+            <!-- CELEBRACIÓN INSTITUCIONAL -->
+            <li class="category-item">
+              <span class="category-priority">5</span>
+              <span class="category-name">CELEBRACIÓN INSTITUCIONAL</span>
+              <p class="category-description">
+                Logro/reconocimiento de estudiantes, egresados, docentes o
+                institución
+              </p>
+              <div class="decision-integrated">
+                <div class="node-question">
+                  ¿El comentario expresa ORGULLO/IDENTIFICACIÓN con la
+                  institución?
+                </div>
+                <div class="node-answers">
+                  <div class="answer answer-yes">
+                    <span class="answer-icon">SÍ</span>ALTO VALOR (+20)
+                  </div>
+                  <div class="answer answer-no">
+                    <span class="answer-icon">NO</span>BAJO VALOR (-2)
+                  </div>
+                </div>
+                <div class="result result-high">
+                  ALTO VALOR (+20) - Expresa orgullo, identificación o celebra
+                  logros institucionales
+                </div>
+                <div class="result result-low">
+                  BAJO VALOR (-2) - Preguntas operativas, comentarios negativos
+                  o fuera de contexto
+                </div>
+              </div>
+            </li>
+
+            <!-- CONTENIDO EDUCATIVO -->
+            <li class="category-item">
+              <span class="category-priority">6</span>
+              <span class="category-name">CONTENIDO EDUCATIVO</span>
+              <p class="category-description">
+                Contenido educativo/práctico, tips, herramientas, consejos
+              </p>
+              <div class="decision-integrated">
+                <div class="node-question">
+                  ¿El comentario APLICA CONSEJOS o PIDE PROFUNDIZACIÓN del tema?
+                </div>
+                <div class="node-answers">
+                  <div class="answer answer-yes">
+                    <span class="answer-icon">SÍ</span>ALTO VALOR (+20)
+                  </div>
+                  <div class="answer answer-no">
+                    <span class="answer-icon">NO</span>BAJO VALOR (+0)
+                  </div>
+                </div>
+                <div class="result result-high">
+                  ALTO VALOR (+20) - Aplica consejos, pide más información o
+                  profundiza en el contenido
+                </div>
+                <div class="result result-low">
+                  BAJO VALOR (+0) - Agradecimiento simple sin valor agregado o
+                  comentario superficial
+                </div>
+              </div>
+            </li>
+
+            <!-- FIDELIZACIÓN COMUNITARIA -->
+            <li class="category-item">
+              <span class="category-priority">7</span>
+              <span class="category-name">FIDELIZACIÓN COMUNITARIA</span>
+              <p class="category-description">
+                Se dirige específicamente a egresados, docentes o estudiantes
+                actuales
+              </p>
+              <div class="decision-integrated">
+                <div class="node-question">
+                  ¿El comentario se IDENTIFICA como miembro y COMPARTE
+                  EXPERIENCIA?
+                </div>
+                <div class="node-answers">
+                  <div class="answer answer-yes">
+                    <span class="answer-icon">SÍ</span>ALTO VALOR (+20)
+                  </div>
+                  <div class="answer answer-no">
+                    <span class="answer-icon">NO</span>BAJO VALOR (+0)
+                  </div>
+                </div>
+                <div class="result result-high">
+                  ALTO VALOR (+20) - Se identifica como miembro de la comunidad
+                  y comparte experiencia relevante
+                </div>
+                <div class="result result-low">
+                  BAJO VALOR (+0) - Comentario genérico sin identificación o
+                  experiencia personal
+                </div>
+              </div>
+            </li>
+
+            <!-- POSICIONAMIENTO DE MARCA -->
+            <li class="category-item">
+              <span class="category-priority">8</span>
+              <span class="category-name">POSICIONAMIENTO DE MARCA</span>
+              <p class="category-description">
+                Refuerza identidad/valores institucionales
+              </p>
+              <div class="decision-integrated">
+                <div class="node-question">
+                  ¿El comentario expresa ORGULLO/IDENTIFICACIÓN con la
+                  institución?
+                </div>
+                <div class="node-answers">
+                  <div class="answer answer-yes">
+                    <span class="answer-icon">SÍ</span>ALTO VALOR (+20)
+                  </div>
+                  <div class="answer answer-no">
+                    <span class="answer-icon">NO</span>BAJO VALOR (-2)
+                  </div>
+                </div>
+                <div class="result result-high">
+                  ALTO VALOR (+20) - Expresa orgullo, identificación o celebra
+                  valores institucionales
+                </div>
+                <div class="result result-low">
+                  BAJO VALOR (-2) - Preguntas operativas, comentarios negativos
+                  o fuera de contexto
+                </div>
+              </div>
+            </li>
+
+            <!-- INTERNACIONALIZACIÓN -->
+            <li class="category-item">
+              <span class="category-priority">9</span>
+              <span class="category-name">INTERNACIONALIZACIÓN</span>
+              <p class="category-description">
+                Elementos explícitamente internacionales
+              </p>
+              <div class="decision-integrated">
+                <div class="node-question">
+                  ¿El comentario expresa ORGULLO/IDENTIFICACIÓN con la
+                  institución?
+                </div>
+                <div class="node-answers">
+                  <div class="answer answer-yes">
+                    <span class="answer-icon">SÍ</span>ALTO VALOR (+20)
+                  </div>
+                  <div class="answer answer-no">
+                    <span class="answer-icon">NO</span>BAJO VALOR (-2)
+                  </div>
+                </div>
+                <div class="result result-high">
+                  ALTO VALOR (+20) - Expresa orgullo, identificación o celebra
+                  aspectos internacionales
+                </div>
+                <div class="result result-low">
+                  BAJO VALOR (-2) - Preguntas operativas, comentarios negativos
+                  o fuera de contexto
+                </div>
+              </div>
+            </li>
+
+            <!-- ENGAGEMENT EMOCIONAL -->
+            <li class="category-item">
+              <span class="category-priority">10</span>
+              <span class="category-name">ENGAGEMENT EMOCIONAL</span>
+              <p class="category-description">
+                Contenido emocional, preguntas abiertas
+              </p>
+              <div class="decision-integrated">
+                <div class="node-question">
+                  ¿El comentario COMPARTE EXPERIENCIA PERSONAL con DETALLE?
+                </div>
+                <div class="node-answers">
+                  <div class="answer answer-yes">
+                    <span class="answer-icon">SÍ</span>ALTO VALOR (+20)
+                  </div>
+                  <div class="answer answer-no">
+                    <span class="answer-icon">NO</span>BAJO VALOR (+0)
+                  </div>
+                </div>
+                <div class="result result-high">
+                  ALTO VALOR (+20) - Comparte experiencia personal detallada o
+                  responde profundamente a pregunta emocional
+                </div>
+                <div class="result result-low">
+                  BAJO VALOR (+0) - Respuesta simple, genérica o sin desarrollo
+                  personal
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tabla de Comentarios -->
+      <div class="tablaComentarios">
+        <table>
+          <thead>
+            <tr>
+              <th>PRIORIDAD</th>
+              <th>CATEGORÍA</th>
+              <th>REGLA DE DECISIÓN</th>
+              <th>PALABRAS CLAVE</th>
+              <th>EJEMPLO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>PROMOCIÓN DE BENEFICIOS</td>
+              <td>
+                Comentario muestra INTENCIÓN DE MATRÍCULA/INSCRIPCIÓN o pregunta
+                sobre PRECIO/DESCUENTO
+              </td>
+              <td>
+                "matricularme", "inscribirme", "precio", "costo", "descuento",
+                "beca", "financiación"
+              </td>
+              <td>
+                "Quiero matricularme en psicología", "¿Qué costo tiene?", "Yo
+                quiero participar por una beca"
+              </td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>CAPTACIÓN ACADÉMICA</td>
+              <td>
+                Comentario busca INFORMACIÓN ACADÉMICA o pregunta sobre
+                PROGRAMAS/REQUISITOS
+              </td>
+              <td>
+                "información", "programa", "carrera", "estudiar", "requisitos",
+                "cómo aplicar"
+              </td>
+              <td>
+                "Me gustaría estudiar topografía", "¿Qué requisitos piden?",
+                "Hola, como puedo aplicar?"
+              </td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>SERVICIOS ESTUDIANTILES</td>
+              <td>
+                Comentario pregunta sobre POSTULACIÓN LABORAL o SERVICIOS
+                UNIVERSITARIOS
+              </td>
+              <td>
+                "postularme", "hoja de vida", "vacante", "CV", "servicio",
+                "empleo", "trabajo"
+              </td>
+              <td>
+                "¿Cómo puedo postularme?", "¿Dónde envío mi hoja de vida?",
+                "Subir la hoja de vida en servicio de empleo"
+              </td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>EVENTOS Y ACTIVIDADES</td>
+              <td>Comentario indica PARTICIPACIÓN o REGISTRO en eventos</td>
+              <td>
+                "participar", "asistir", "registrarme", "evento", "actividad",
+                "inducción"
+              </td>
+              <td>
+                "Quiero participar por una beca", "¿Cómo me registro?", "Yo
+                quiero, participar por una beca"
+              </td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>CELEBRACIÓN INSTITUCIONAL</td>
+              <td>
+                Comentario expresa ORGULLO/IDENTIFICACIÓN con la institución
+              </td>
+              <td>
+                "orgullo", "alma mater", "felicitaciones", "honor", "excelente",
+                "felicidades"
+              </td>
+              <td>
+                "Un orgullo formar parte de esta alma mater", "Excelente
+                universidad", "Siempre Orgulloso de mi Alma Mater"
+              </td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>CONTENIDO EDUCATIVO</td>
+              <td>Comentario APLICA CONSEJOS o COMPARTE CONOCIMIENTO</td>
+              <td>
+                "consejo", "herramienta", "método", "aprender", "conocimiento",
+                "técnica"
+              </td>
+              <td>
+                "Todas estas iniciativas son importantes para adquirir
+                habilidades", "Lo voy a probar"
+              </td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>FIDELIZACIÓN COMUNITARIA</td>
+              <td>Comentario se IDENTIFICA como miembro de la comunidad</td>
+              <td>
+                "egresado", "estudiante", "docente", "comunidad", "soy",
+                "graduado"
+              </td>
+              <td>
+                "Soy egresado sena", "En agosto ya me graduó de mi pregrado",
+                "un orgullo ser egresado"
+              </td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>POSICIONAMIENTO DE MARCA</td>
+              <td>Comentario REFUERZA VALORES institucionales</td>
+              <td>
+                "mejor", "excelencia", "calidad", "reconocimiento", "orgullo
+                institucional"
+              </td>
+              <td>
+                "Politécnico lo mejor", "Super, por eso son una de las mejores",
+                "Excelencia politecnico"
+              </td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>INTERNACIONALIZACIÓN</td>
+              <td>Comentario menciona elementos INTERNACIONALES</td>
+              <td>
+                "internacional", "inglés", "exterior", "países", "global",
+                "Brasil"
+              </td>
+              <td>
+                "Antes de pensar viajar al exterior y allí perfeccionarlo",
+                "experiencias internacionales"
+              </td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>ENGAGEMENT EMOCIONAL</td>
+              <td>Comentario COMPARTE EXPERIENCIAS/EMOCIONES personales</td>
+              <td>
+                "recuerdo", "experiencia", "feliz", "triste", "familia",
+                "emocionante"
+              </td>
+              <td>
+                "Recuerdo desbloqueado", "Que triste, Dios acompañe a sus
+                familiares", "Qué lindo momento"
+              </td>
+            </tr>
+            <tr>
+              <td>-</td>
+              <td>QUEJAS/SOPORTE</td>
+              <td>Comentario expresa PROBLEMAS con servicios/atención</td>
+              <td>
+                "problema", "no funciona", "mal servicio", "queja", "soporte",
+                "no contestan"
+              </td>
+              <td>
+                "No he podido registrarme", "El servicio es pésimo", "No me
+                contestan en esa universidad"
+              </td>
+            </tr>
+            <tr>
+              <td>-</td>
+              <td>CONSULTAS GENÉRICAS</td>
+              <td>Comentario busca INFORMACIÓN básica sin especificar</td>
+              <td>
+                "información", "más info", "consultar", "saber", "más
+                información"
+              </td>
+              <td>
+                "Hola, por favor me regalas más información", "Saludos busco
+                información"
+              </td>
+            </tr>
+            <tr>
+              <td>-</td>
+              <td>AGRADECIMIENTOS</td>
+              <td>Comentario solo expresa GRATITUD sin valor agregado</td>
+              <td>
+                "gracias", "bien", "super", "bonito", "excelente", "bueno"
+              </td>
+              <td>"Gracias", "que bonito", "muy bien", "excelente"</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Sección de Cálculo de Puntuación -->
+      <section>
+        <h3>Consolidación Valor del Post vs Comentarios (Rúbrica PS)</h3>
+        <p>
+          Aplica tu metodología de Psicometría para obtener el Score de
+          Engagement de Calidad de una publicación.
+        </p>
+
+        <div class="input-group">
+          <h4>1. Puntuación por Volumen e Interacción:</h4>
+          <label
+            >Likes (+1): <input type="number" id="likes" value="0" min="0"
+          /></label>
+          <label
+            >Me Encanta (+2):
+            <input type="number" id="me_encanta" value="0" min="0"
+          /></label>
+          <label
+            >Compartir (+3):
+            <input type="number" id="compartir" value="0" min="0"
+          /></label>
+          <label
+            >Comentarios (Base +4):
+            <input type="number" id="comentarios_base" value="0" min="0"
+          /></label>
+          <label
+            >Enojo / Fricción (-2):
+            <input type="number" id="enojo" value="0" min="0"
+          /></label>
+        </div>
+
+        <div class="input-group">
+          <h4>2. Ajuste por Calidad del Comentario (Intención):</h4>
+          <p>
+            Suma manual de todos los
+            <strong>Puntos de Ajuste Adicional</strong> (+5,
+            <strong>+20</strong>, etc.) obtenidos por los comentarios de la
+            publicación, según tu Árbol de Decisión.
+          </p>
+          <label
+            >Total Puntos de Ajuste por Calidad:
+            <input type="number" id="ajuste_calidad" value="0" min="0"
+          /></label>
+        </div>
+
+        <button onclick="calcularScore()">Calcular Score de Engagement</button>
+
+        <div class="resultado" id="resultado_final">
+          <h4>Score de Engagement de Calidad</h4>
+          <div class="score" id="score_value">0</div>
+          <div class="nivel" id="nivel_value">Nivel Pendiente</div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      // Definición de pesos de la Rúbrica de Psicometría
+      const PESOS = {
+        likes: 1,
+        me_encanta: 2,
+        compartir: 3,
+        comentarios_base: 4,
+        enojo: -2,
+      };
+
+      // Función principal para el cálculo
+      function calcularScore() {
+        // Obtener los valores de los inputs y asegurarse de que sean números enteros
+        const likes = parseInt(document.getElementById("likes").value) || 0;
+        const me_encanta =
+          parseInt(document.getElementById("me_encanta").value) || 0;
+        const compartir =
+          parseInt(document.getElementById("compartir").value) || 0;
+        const comentarios_base =
+          parseInt(document.getElementById("comentarios_base").value) || 0;
+        const enojo = parseInt(document.getElementById("enojo").value) || 0;
+        const ajuste_calidad =
+          parseInt(document.getElementById("ajuste_calidad").value) || 0;
+
+        // 1. Calcular Puntuación por Volumen (Capa 1)
+        let puntaje_volumen =
+          likes * PESOS.likes +
+          me_encanta * PESOS.me_encanta +
+          compartir * PESOS.compartir +
+          comentarios_base * PESOS.comentarios_base +
+          enojo * PESOS.enojo;
+
+        // 2. Calcular Puntuación Total (Capa 2: Ajuste por Calidad)
+        // La base de los comentarios (+4) ya está incluida en puntaje_volumen.
+        // Solo se suma el puntaje de ajuste (+5, +20, etc.)
+        let puntaje_total = puntaje_volumen + ajuste_calidad;
+
+        // 3. Determinar el Nivel de Engagement (Umbrales de Ejemplo)
+        let nivel_engagement = "";
+        let color = "";
+
+        if (puntaje_total <= 20) {
+          nivel_engagement = "BAJO 🔻";
+          color = "#dc3545";
+        } else if (puntaje_total <= 50) {
+          nivel_engagement = "MEDIO 🟡";
+          color = "#ffc107";
+        } else {
+          nivel_engagement = "ALTO 🟢";
+          color = "#28a745";
+        }
+
+        // 4. Mostrar Resultados
+        document.getElementById("score_value").innerText = puntaje_total;
+        document.getElementById("score_value").style.color = color;
+        document.getElementById("nivel_value").innerText = nivel_engagement;
+      }
+
+      // Funcionalidad para expandir/contraer nodos
+      function expandAll() {
+        document
+          .querySelectorAll(".meta-block")
+          .forEach((el) => el.classList.remove("hidden"));
+      }
+
+      function collapseAll() {
+        document
+          .querySelectorAll(".meta-block")
+          .forEach((el) => el.classList.add("hidden"));
+      }
+
+      function resetTree() {
+        expandAll();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // Interactividad para nodos
+      document.querySelectorAll(".node").forEach((node) => {
+        node.addEventListener("click", function () {
+          const nextBranches = this.parentElement.querySelector(".branches");
+          if (nextBranches) {
+            nextBranches.style.display =
+              nextBranches.style.display === "none" ? "flex" : "none";
+          }
+        });
+      });
+
+      // Interactividad para respuestas en el árbol de comentarios
+      document.querySelectorAll(".answer").forEach((answer) => {
+        answer.addEventListener("click", function () {
+          const result = this.parentElement.querySelector(
+            ".result-" +
+              (this.classList.contains("answer-yes") ? "high" : "low")
+          );
+          if (result) {
+            alert(result.textContent);
+          }
+        });
+      });
+
+      // Inicializar el árbol colapsado
+      document.addEventListener("DOMContentLoaded", () => {
+        collapseAll();
+      });
+    </script>
+  </body>
+</html>
