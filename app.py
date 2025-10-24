@@ -13,7 +13,7 @@ current_dir = Path(__file__).parent
 logo_folder_name = "data"
 
 # Ruta ABSOLUTA (con fallback relativo)
-logo_win_path = Path(r"C:\Users\juan_garnicac\Documents\escuchaSocial\barce\data\barce.jpeg")
+logo_win_path = Path(data\barce.jpeg")
 logo_rel_path = current_dir / logo_folder_name / "CUN-1200X1200.png"
 img_path = logo_win_path if logo_win_path.exists() else logo_rel_path
 
