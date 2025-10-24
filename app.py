@@ -9,26 +9,59 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-current_dir = Path(__file__).parent
-logo_folder_name = "data"
+# ================= CONFIGURACIÓN DE RUTAS CORREGIDA =================
+current_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
 
-# Ruta ABSOLUTA (con fallback relativo)
-logo_win_path = Path("data/barca.jpeg")
+# Lista de posibles ubicaciones y nombres de archivo
+possible_paths = [
+    current_dir / "data" / "barce.jpeg",      # Nombre que mencionaste
+    current_dir / "data" / "barca.jpeg",      # Nombre que usas en el código
+    current_dir / "data" / "CUN-1200X1200.png", # El otro archivo que mencionas
+    Path("data/barce.jpeg"),                  # Ruta relativa
+    Path("data/barca.jpeg"),                  # Ruta relativa alternativa
+]
 
-img_path = logo_win_path if logo_win_path.exists() else logo_rel_path
+# Encontrar la primera ruta que exista
+img_path = None
+for path in possible_paths:
+    if path.exists():
+        img_path = path
+        st.success(f"✅ Imagen encontrada en: {img_path}")
+        break
+
+# Si no se encuentra ninguna, mostrar ayuda para diagnóstico
+if img_path is None:
+    st.error("❌ No se pudo encontrar ninguna imagen. Verifica:")
+    st.write("**Archivos buscados:**")
+    for path in possible_paths:
+        st.write(f"- {path} → Existe: {path.exists()}")
+    
+    # Mostrar estructura de directorios para ayudar
+    st.write("**Estructura de directorios actual:**")
+    try:
+        for item in current_dir.rglob("*"):
+            if item.is_file():
+                st.write(f"  {item}")
+    except:
+        st.write("  No se pudo leer la estructura de directorios")
+    
+    img_path = Path("")  # Ruta vacía para evitar error
 
 def encode_image(path: Path) -> tuple[str, str]:
+    if not path or not path.exists():
+        return "", "image/png"
+    
     try:
         b = path.read_bytes()
         mime = "image/jpeg" if path.suffix.lower() in [".jpg", ".jpeg"] else "image/png"
         return base64.b64encode(b).decode(), mime
     except Exception as e:
-        st.info(f"⚠️ Imagen no disponible ({e}).")
+        st.error(f"⚠️ Error al codificar imagen: {e}")
         return "", "image/png"
 
 encoded_img, img_mime = encode_image(img_path)
 
-# ================= CSS (incluye el efecto y estilos mínimos) =================
+# ================= CSS (mantener igual) =================
 st.markdown(
     """
     <style>
@@ -47,7 +80,7 @@ st.markdown(
       /* === HERO: imagen mitad de pantalla con Efecto Ken Burns === */
       .hero-wrap{
         width:100%;
-        height:50vh;             /* mitad de la pantalla */
+        height:50vh;
         overflow:hidden;
         border-radius:18px;
         position:relative;
@@ -84,7 +117,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ================= HERO (AQUÍ SE PINTA LA IMAGEN CON EL EFECTO) =================
+# ================= HERO =================
 if encoded_img:
     st.markdown(
         f"""
@@ -95,14 +128,19 @@ if encoded_img:
         unsafe_allow_html=True,
     )
 else:
-    st.warning("No se pudo cargar la imagen del hero. Revisa la ruta en 'img_path'.")
+    # Placeholder si no hay imagen
+    st.markdown(
+        """
+        <div class="hero-wrap" style="display:flex; align-items:center; justify-content:center; background:#f0f2f6;">
+          <p style="color:#666; font-size:1.2rem;">Imagen no disponible</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # ================= RUTAS A OTRAS PÁGINAS =================
 st.subheader("Rutas del flujo")
-# <<< AQUI SE LLAMA A LA PAGINA CONSENTIMIENTO INFORMADO >>>
 st.page_link("pages/ConsentimientoInformado.py", label="📝 ConsentimientoInformado")
-
-# <<< AQUI SE LLAMA A LA PAGINA DIAGNOSTICO FACIAL (SIN TILDE EN EL NOMBRE DEL ARCHIVO) >>>
 st.page_link("pages/DiagnosticoFacial.py", label="🧴 DiagnosticoFacial")
 
 st.divider()
