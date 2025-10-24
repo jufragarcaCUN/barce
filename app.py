@@ -139,9 +139,7 @@ else:
     )
 
 # ================= RUTAS A OTRAS PÁGINAS =================
-st.subheader("Rutas del flujo")
-st.page_link("pages/ConsentimientoInformado.py", label="📝 ConsentimientoInformado")
-st.page_link("pages/DiagnosticoFacial.py", label="🧴 DiagnosticoFacial")
 
-st.divider()
+
+
 st.write("Bienvenida. Usa las rutas de arriba para continuar con el flujo del cliente.")
