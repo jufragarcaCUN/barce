@@ -14,7 +14,7 @@ logo_folder_name = "data"
 
 # Ruta ABSOLUTA (con fallback relativo)
 logo_win_path = Path("data/barca.jpeg")
-logo_rel_path = current_dir / logo_folder_name / "CUN-1200X1200.png"
+
 img_path = logo_win_path if logo_win_path.exists() else logo_rel_path
 
 def encode_image(path: Path) -> tuple[str, str]:
