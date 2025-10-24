@@ -68,7 +68,7 @@ st.markdown(
       html, body { overflow-x:hidden; scroll-behavior:smooth; }
       .stApp > header { display:none !important; }
 
-      .title-container{ width:100%; padding:100px 0 8px 0; margin:0 auto; }
+      .title-container{ width:100%; padding:100px 0 18px 0; margin:0 auto; }
       .main-title{
         font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial;
         font-size: clamp(2rem, 6vw, 5rem);
