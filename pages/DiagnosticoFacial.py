@@ -363,23 +363,3 @@ for label, candidates, key_prefix in sections:
         if fig:
             st.plotly_chart(fig, use_container_width=True)
 
-# ================== MAPA DE CALOR DE CORRELACIONES ==================
-st.subheader("🔥 Mapa de Calor General de Correlaciones")
-numeric_columns = df_date.select_dtypes(include=['number']).columns.tolist()
-
-if len(numeric_columns) > 1:
-    correlation_matrix = df_date[numeric_columns].corr()
-    
-    fig_corr = go.Figure(data=go.Heatmap(
-        z=correlation_matrix.values,
-        x=correlation_matrix.columns.tolist(),
-        y=correlation_matrix.index.tolist(),
-        colorscale=BLUE_COLORSCALE,
-        hoverinfo='z',
-        zmin=-1,
-        zmax=1
-    ))
-    fig_corr.update_layout(title="Correlación entre Variables Numéricas")
-    st.plotly_chart(fig_corr, use_container_width=True)
-else:
-    st.info("No hay suficientes columnas numéricas para calcular correlaciones.")
