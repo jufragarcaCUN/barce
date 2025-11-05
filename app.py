@@ -26,7 +26,7 @@ img_path = None
 for path in possible_paths:
     if path.exists():
         img_path = path
-        st.success(f"✅ Imagen encontrada en: {img_path}")
+   
         break
 
 # Si no se encuentra ninguna, mostrar ayuda para diagnóstico
