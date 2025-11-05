@@ -111,7 +111,7 @@ st.markdown(
 st.markdown(
     """
     <div class="title-container">
-      <p class="main-title">Tablero Control Tratamientos Faciales</p>
+      
     </div>
     """,
     unsafe_allow_html=True,
@@ -141,5 +141,3 @@ else:
 # ================= RUTAS A OTRAS PÁGINAS =================
 
 
-
-st.write("Bienvenida. Usa las rutas de arriba para continuar con el flujo del cliente.")
