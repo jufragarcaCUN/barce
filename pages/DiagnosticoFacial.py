@@ -64,10 +64,27 @@ with st.sidebar:
 # ---------- CSS para KPIs ----------
 KPI_CSS = """
 <style>
-.kpi { background: white; border-radius: 14px; padding: 14px 16px;
-       box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05); }
-.kpi h3 { font-size: 14px; margin: 0 0 6px 0; color: #666; font-weight: 600; }
-.kpi .value { font-size: 26px; font-weight: 800; margin-top: 2px; }
+    /* Cambiar el color de los widgets de Streamlit a azul */
+    .st-bb {
+        background-color: #B0E0E6;
+    }
+    .st-at {
+        background-color: #4682B4;
+    }
+    .st-bh {
+        background-color: #1E90FF;
+    }
+    .st-ag {
+        background-color: #00BFFF;
+    }
+    /* Cambiar el color de los checkboxes y multiselect */
+    .st-cb {
+        background-color: #87CEEB;
+    }
+    /* Cambiar el color de los sliders */
+    .st-dg {
+        background-color: #1E90FF;
+    }
 </style>
 """
 st.markdown(KPI_CSS, unsafe_allow_html=True)
