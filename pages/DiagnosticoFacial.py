@@ -103,43 +103,33 @@ with k2:
 st.caption(f"Registros filtrados (por fecha): {len(df_date)}")
 st.dataframe(df_date, use_container_width=True, height=500)
 
-# ================== FILTRO + GRÁFICO: NIVEL DE HIDRATACIÓN ==================
-posibles_hid = ["nivel_hidratacion", "nivel_hidratación", "Nivel de hidratación"]
-col_hid = next((c for c in posibles_hid if c in df_date.columns), None)
-
-with st.sidebar:
-    st.subheader("Filtro: Nivel de hidratación")
-    if col_hid is None:
-        st.error("No encuentro la columna de nivel de hidratación.")
-        selected_hid_levels = []
-    else:
-        niveles_hid = sorted(df_date[col_hid].dropna().unique().tolist())
-        selected_hid_levels = st.multiselect(
-            "Selecciona nivel(es) de hidratación",
-            options=niveles_hid,
-            default=niveles_hid,
-            key="hid_multiselect",
-        )
-
-df_hid = df_date.copy()
-if col_hid and selected_hid_levels:
-    df_hid = df_hid[df_hid[col_hid].isin(selected_hid_levels)].copy()
-
-if col_hid and selected_hid_levels:
-    if df_hid.empty:
-        st.warning("No hay datos tras aplicar el filtro de hidratación.")
-    else:
-        # Agrupar por nivel de hidratación y contar registros
-        agg_hid = df_hid[col_hid].value_counts().reset_index()
-        agg_hid.columns = [col_hid, 'n']
+# Opción 3: Mapa de calor con dos dimensiones
+if col_hid and selected_hid_levels and not df_hid.empty:
+    # Agrupar por dos categorías (ej: nivel_hidratacion y otra columna)
+    posibles_segunda_dim = ["genero", "sexo", "edad", "categoria", "tipo"]
+    col_segunda = next((c for c in posibles_segunda_dim if c in df_hid.columns), None)
+    
+    if col_segunda:
+        heatmap_data = df_hid.groupby([col_segunda, col_hid]).size().unstack(fill_value=0)
         
-        fig_hid = px.bar(
-            agg_hid, x=col_hid, y='n', 
-            title="Distribución de nivel de hidratación",
-            hover_data={col_hid: True, "n": True},
+        fig_hid = px.imshow(
+            heatmap_data,
+            title=f"Mapa de Calor: {col_hid} vs {col_segunda}",
+            labels=dict(x="Nivel de Hidratación", y=col_segunda, color="Cantidad"),
+            aspect="auto",
+            color_continuous_scale="RdYlBu"
         )
-        fig_hid.update_layout(xaxis_title="Nivel de hidratación", yaxis_title="# registros")
-        st.plotly_chart(fig_hid, use_container_width=True)
+    else:
+        # Volver a la versión simple
+        heatmap_data = df_hid[col_hid].value_counts().to_frame().T
+        fig_hid = px.imshow(
+            heatmap_data,
+            title="Distribución de Niveles de Hidratación",
+            labels=dict(x="Nivel de Hidratación", color="Cantidad"),
+            color_continuous_scale="Viridis"
+        )
+    
+    st.plotly_chart(fig_hid, use_container_width=True)
 
 # ================== FILTRO + GRÁFICO: NIVEL SEBÁCEO / SENSIBILIDAD ==================
 posibles_sens = ["nivel_sebaceo", "grado_sensibilidad", "sensibilidad"]
