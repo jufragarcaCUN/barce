@@ -1,9 +1,10 @@
 # pages/DiagnosticoFacial.py
 import streamlit as st
 import pandas as pd
-import openpyxl  # requiere estar instalado en el venv
+import openpyxl
 from pathlib import Path
 import plotly.express as px
+import plotly.graph_objects as go
 import unicodedata
 
 st.set_page_config(page_title="DiagnósticoFacial", page_icon="🧴", layout="wide")
@@ -25,10 +26,10 @@ except FileNotFoundError:
     st.error(f"❌ No se encontró el archivo: {DATA_PATH}")
     st.stop()
 except Exception as e:
-    st.error(f"❌ Error al cargar el Excel: {e}  (prueba: pip install --upgrade openpyxl pandas)")
+    st.error(f"❌ Error al cargar el Excel: {e}")
     st.stop()
 
-# ================== FILTRO POR FECHA (BARRA LATERAL) ==================
+# ================== FILTRO POR FECHA ==================
 with st.sidebar:
     st.header("Filtros")
     if "fecha_valoracion" not in df_raw.columns:
@@ -51,7 +52,6 @@ with st.sidebar:
                 value=(start_default, end_default),
                 min_value=start_default,
                 max_value=end_default,
-                help="Filtra por la columna 'fecha_valoracion' (rango inclusivo).",
                 key="fecha_rango",
             )
             if isinstance(date_range, tuple):
@@ -61,7 +61,7 @@ with st.sidebar:
             mask = (df_raw["fecha_valoracion"].dt.date >= start_date) & (df_raw["fecha_valoracion"].dt.date <= end_date)
             df_date = df_raw.loc[mask].copy()
 
-# ---------- CSS simple para KPIs ----------
+# ---------- CSS para KPIs ----------
 KPI_CSS = """
 <style>
 .kpi { background: white; border-radius: 14px; padding: 14px 16px;
@@ -72,85 +72,136 @@ KPI_CSS = """
 """
 st.markdown(KPI_CSS, unsafe_allow_html=True)
 
-# ================== KPIs (sobre df filtrado por fecha) ==================
+# ================== KPIs ==================
 col_agente = "esteticista" if "esteticista" in df_date.columns else ("asesor" if "asesor" in df_date.columns else None)
 n_agentes = int(df_date[col_agente].nunique()) if col_agente else 0
 n_usuarios = int(len(df_date))
 
 k1, k2 = st.columns(2)
 with k1:
-    st.markdown(
-        f"""
-        <div class="kpi">
-          <h3>Agentes en rango</h3>
-          <div class="value">{n_agentes:,}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown(f"""<div class="kpi"><h3>Agentes en rango</h3><div class="value">{n_agentes:,}</div></div>""", unsafe_allow_html=True)
 with k2:
-    st.markdown(
-        f"""
-        <div class="kpi">
-          <h3>Usuarios en rango</h3>
-          <div class="value">{n_usuarios:,}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown(f"""<div class="kpi"><h3>Usuarios en rango</h3><div class="value">{n_usuarios:,}</div></div>""", unsafe_allow_html=True)
 
-# ================== TABLA (sobre df filtrado por fecha) ==================
+# ================== TABLA ==================
 st.caption(f"Registros filtrados (por fecha): {len(df_date)}")
 st.dataframe(df_date, use_container_width=True, height=500)
 
-# ================== FUNCIÓN PARA CREAR MAPAS DE CALOR ==================
-def create_heatmap(df, main_column, title, second_dimension_candidates=None):
-    """Crea un mapa de calor para una columna principal, opcionalmente contra una segunda dimensión"""
+# ================== ESCALA DE AZULES PERSONALIZADA ==================
+BLUE_COLORSCALE = [
+    [0.0, '#B0E0E6'],    # azul pálido
+    [0.125, '#ADD8E6'],  # azul claro
+    [0.25, '#87CEFA'],   # cielo azul claro
+    [0.375, '#87CEEB'],  # cielo azul
+    [0.5, '#00BFFF'],    # DeepSkyBlue
+    [0.625, '#B0C4DE'],  # azul claro
+    [0.75, '#1E90FF'],   # dodgerblue
+    [0.875, '#6495ED'],  # azul aciano
+    [1.0, '#4682B4']     # azul acero
+]
+
+# ================== FUNCIÓN PARA CREAR MAPAS DE CALOR CON USUARIOS ==================
+def create_heatmap_with_users(df, main_column, title, second_dimension_candidates=None):
+    """Crea un mapa de calor que muestra nombres de usuarios en los tooltips"""
     if main_column not in df.columns or df.empty:
         return None
     
     try:
-        # Buscar segunda dimensión si se proporcionan candidatos
+        # Buscar columna de nombre de usuario
+        nombre_col = next((col for col in ["nombre", "cliente", "paciente", "usuario"] if col in df.columns), None)
+        
+        # Buscar segunda dimensión
         second_dim = None
         if second_dimension_candidates:
             second_dim = next((col for col in second_dimension_candidates if col in df.columns), None)
         
         if second_dim:
-            # Mapa de calor con dos dimensiones
-            heatmap_data = df.groupby([second_dim, main_column]).size().unstack(fill_value=0)
-            fig = px.imshow(
-                heatmap_data,
-                title=f"{title} vs {second_dim}",
-                labels=dict(x=main_column, y=second_dim, color="Cantidad"),
-                aspect="auto",
-                color_continuous_scale="Viridis"
-            )
+            # Agrupar y recolectar nombres de usuarios
+            grouped = df.groupby([second_dim, main_column])[nombre_col].agg([
+                ('count', 'size'),
+                ('users', lambda x: ', '.join(x.astype(str).unique()[:10]) + ('...' if len(x) > 10 else '')
+            )]).reset_index()
+            
+            # Crear matriz para el heatmap
+            pivot_data = grouped.pivot(index=second_dim, columns=main_column, values='count').fillna(0)
+            
+            # Crear matriz de texto con usuarios
+            text_data = grouped.pivot(index=second_dim, columns=main_column, values='users').fillna('')
+            
+            fig = go.Figure(data=go.Heatmap(
+                z=pivot_data.values,
+                x=pivot_data.columns.tolist(),
+                y=pivot_data.index.tolist(),
+                text=text_data.values,
+                hoverinfo='text',
+                hovertemplate=(
+                    f"{second_dim}: %{{y}}<br>"
+                    f"{main_column}: %{{x}}<br>"
+                    "Cantidad: %{z}<br>"
+                    "Usuarios: %{text}<br>"
+                    "<extra></extra>"
+                ),
+                colorscale=BLUE_COLORSCALE,
+                showscale=True
+            ))
+            
         else:
-            # Mapa de calor simple - buscar dimensión temporal
+            # Mapa de calor simple con usuarios
             if 'fecha_valoracion' in df.columns:
                 df_temp = df.copy()
                 df_temp['mes'] = df_temp['fecha_valoracion'].dt.to_period('M').astype(str)
-                heatmap_data = df_temp.groupby(['mes', main_column]).size().unstack(fill_value=0)
-                fig = px.imshow(
-                    heatmap_data.T,
-                    title=f"{title} por Mes",
-                    labels=dict(x="Mes", y=main_column, color="Cantidad"),
-                    aspect="auto",
-                    color_continuous_scale="Blues"
-                )
+                
+                # Agrupar por mes y recolectar usuarios
+                grouped = df_temp.groupby(['mes', main_column])[nombre_col].agg([
+                    ('count', 'size'),
+                    ('users', lambda x: ', '.join(x.astype(str).unique()[:8]) + ('...' if len(x) > 8 else '')
+                )]).reset_index()
+                
+                pivot_data = grouped.pivot(index='mes', columns=main_column, values='count').fillna(0)
+                text_data = grouped.pivot(index='mes', columns=main_column, values='users').fillna('')
+                
+                fig = go.Figure(data=go.Heatmap(
+                    z=pivot_data.values,
+                    x=pivot_data.columns.tolist(),
+                    y=pivot_data.index.tolist(),
+                    text=text_data.values,
+                    hoverinfo='text',
+                    hovertemplate=(
+                        "Mes: %{y}<br>"
+                        f"{main_column}: %{{x}}<br>"
+                        "Cantidad: %{z}<br>"
+                        "Usuarios: %{text}<br>"
+                        "<extra></extra>"
+                    ),
+                    colorscale=BLUE_COLORSCALE,
+                    showscale=True
+                ))
+                
             else:
-                # Mapa de calor básico de frecuencias
-                value_counts = df[main_column].value_counts()
-                heatmap_data = value_counts.to_frame().T
-                fig = px.imshow(
-                    heatmap_data,
-                    title=title,
-                    labels=dict(x=main_column, color="Cantidad"),
-                    color_continuous_scale="Viridis"
-                )
-                fig.update_layout(yaxis=dict(showticklabels=False))
+                # Mapa de calor básico con usuarios
+                user_groups = df.groupby(main_column)[nombre_col].agg([
+                    ('count', 'size'),
+                    ('users', lambda x: ', '.join(x.astype(str).unique()[:15]) + ('...' if len(x) > 15 else '')
+                )]).reset_index()
+                
+                fig = go.Figure(data=go.Heatmap(
+                    z=[user_groups['count'].values],
+                    x=user_groups[main_column].tolist(),
+                    y=[''],
+                    text=[user_groups['users'].values],
+                    hoverinfo='text',
+                    hovertemplate=(
+                        f"{main_column}: %{{x}}<br>"
+                        "Cantidad: %{z}<br>"
+                        "Usuarios: %{text}<br>"
+                        "<extra></extra>"
+                    ),
+                    colorscale=BLUE_COLORSCALE,
+                    showscale=True
+                ))
         
         fig.update_layout(
+            title=title,
             xaxis_title=main_column,
             yaxis_title=second_dim if second_dim else "",
         )
@@ -160,79 +211,7 @@ def create_heatmap(df, main_column, title, second_dimension_candidates=None):
         st.error(f"Error al crear mapa de calor para {main_column}: {str(e)}")
         return None
 
-# ================== FILTRO + MAPA DE CALOR: NIVEL DE HIDRATACIÓN ==================
-posibles_hid = ["nivel_hidratacion", "nivel_hidratación", "Nivel de hidratación"]
-col_hid = next((c for c in posibles_hid if c in df_date.columns), None)
-
-with st.sidebar:
-    st.subheader("Filtro: Nivel de hidratación")
-    if col_hid is None:
-        st.error("No encuentro la columna de nivel de hidratación.")
-        selected_hid_levels = []
-    else:
-        niveles_hid = sorted(df_date[col_hid].dropna().unique().tolist())
-        selected_hid_levels = st.multiselect(
-            "Selecciona nivel(es) de hidratación",
-            options=niveles_hid,
-            default=niveles_hid,
-            key="hid_multiselect",
-        )
-
-df_hid = df_date.copy()
-if col_hid and selected_hid_levels:
-    df_hid = df_hid[df_hid[col_hid].isin(selected_hid_levels)].copy()
-
-if col_hid and selected_hid_levels and not df_hid.empty:
-    st.subheader("🧴 Mapa de Calor: Nivel de Hidratación")
-    fig_hid = create_heatmap(
-        df_hid, 
-        col_hid, 
-        "Distribución de Niveles de Hidratación",
-        second_dimension_candidates=["esteticista", "asesor", "genero", "sexo"]
-    )
-    if fig_hid:
-        st.plotly_chart(fig_hid, use_container_width=True)
-        
-        # Mostrar datos en tabla
-        with st.expander("Ver datos detallados de hidratación"):
-            st.dataframe(df_hid[col_hid].value_counts().reset_index().rename(
-                columns={'index': 'Nivel de Hidratación', col_hid: 'Cantidad'}
-            ))
-
-# ================== FILTRO + MAPA DE CALOR: NIVEL SEBÁCEO / SENSIBILIDAD ==================
-posibles_sens = ["nivel_sebaceo", "grado_sensibilidad", "sensibilidad"]
-col_sens = next((c for c in posibles_sens if c in df_date.columns), None)
-
-with st.sidebar:
-    st.subheader("Filtro: Nivel sebáceo / sensibilidad")
-    if col_sens is None:
-        st.error("No encuentro la columna de nivel sebáceo/sensibilidad.")
-        selected_sens_levels = []
-    else:
-        niveles_sens = sorted(df_date[col_sens].dropna().unique().tolist())
-        selected_sens_levels = st.multiselect(
-            "Selecciona nivel(es) sebáceo/sensibilidad",
-            options=niveles_sens,
-            default=niveles_sens,
-            key="sens_multiselect",
-        )
-
-df_sens = df_date.copy()
-if col_sens and selected_sens_levels:
-    df_sens = df_sens[df_sens[col_sens].isin(selected_sens_levels)].copy()
-
-if col_sens and selected_sens_levels and not df_sens.empty:
-    st.subheader("🔍 Mapa de Calor: Nivel Sebáceo / Sensibilidad")
-    fig_sens = create_heatmap(
-        df_sens,
-        col_sens,
-        "Distribución de Niveles Sebáceos / Sensibilidad",
-        second_dimension_candidates=["esteticista", "asesor", "genero", "sexo"]
-    )
-    if fig_sens:
-        st.plotly_chart(fig_sens, use_container_width=True)
-
-# ================== UTILIDADES PARA SECCIONES GENÉRICAS ==================
+# ================== FUNCIONES AUXILIARES ==================
 def _norm(s: str) -> str:
     s = unicodedata.normalize("NFD", str(s)).encode("ascii", "ignore").decode("ascii")
     return "".join(ch for ch in s.lower() if ch.isalnum() or ch in "_ ")
@@ -251,7 +230,6 @@ def find_col(df: pd.DataFrame, candidates: list[str]) -> str | None:
     return None
 
 def render_heatmap_section(df_base: pd.DataFrame, label: str, candidates: list[str], key_prefix: str):
-    """Renderiza una sección con mapa de calor para variables categóricas"""
     col_target = find_col(df_base, candidates)
     
     with st.sidebar:
@@ -276,7 +254,73 @@ def render_heatmap_section(df_base: pd.DataFrame, label: str, candidates: list[s
     
     return df_filtered, col_target
 
-# ================== SECCIONES ESPECÍFICAS CON MAPAS DE CALOR ==================
+# ================== SECCIÓN HIDRATACIÓN ==================
+posibles_hid = ["nivel_hidratacion", "nivel_hidratación", "Nivel de hidratación"]
+col_hid = next((c for c in posibles_hid if c in df_date.columns), None)
+
+with st.sidebar:
+    st.subheader("Filtro: Nivel de hidratación")
+    if col_hid is None:
+        st.error("No encuentro la columna de nivel de hidratación.")
+        selected_hid_levels = []
+    else:
+        niveles_hid = sorted(df_date[col_hid].dropna().unique().tolist())
+        selected_hid_levels = st.multiselect(
+            "Selecciona nivel(es) de hidratación",
+            options=niveles_hid,
+            default=niveles_hid,
+            key="hid_multiselect",
+        )
+
+df_hid = df_date.copy()
+if col_hid and selected_hid_levels:
+    df_hid = df_hid[df_hid[col_hid].isin(selected_hid_levels)].copy()
+
+if col_hid and selected_hid_levels and not df_hid.empty:
+    st.subheader("🧴 Mapa de Calor: Nivel de Hidratación")
+    fig_hid = create_heatmap_with_users(
+        df_hid, 
+        col_hid, 
+        "Distribución de Niveles de Hidratación",
+        second_dimension_candidates=["esteticista", "asesor", "genero", "sexo"]
+    )
+    if fig_hid:
+        st.plotly_chart(fig_hid, use_container_width=True)
+
+# ================== SECCIÓN SENSIBILIDAD ==================
+posibles_sens = ["nivel_sebaceo", "grado_sensibilidad", "sensibilidad"]
+col_sens = next((c for c in posibles_sens if c in df_date.columns), None)
+
+with st.sidebar:
+    st.subheader("Filtro: Nivel sebáceo / sensibilidad")
+    if col_sens is None:
+        st.error("No encuentro la columna de nivel sebáceo/sensibilidad.")
+        selected_sens_levels = []
+    else:
+        niveles_sens = sorted(df_date[col_sens].dropna().unique().tolist())
+        selected_sens_levels = st.multiselect(
+            "Selecciona nivel(es) sebáceo/sensibilidad",
+            options=niveles_sens,
+            default=niveles_sens,
+            key="sens_multiselect",
+        )
+
+df_sens = df_date.copy()
+if col_sens and selected_sens_levels:
+    df_sens = df_sens[df_sens[col_sens].isin(selected_sens_levels)].copy()
+
+if col_sens and selected_sens_levels and not df_sens.empty:
+    st.subheader("🔍 Mapa de Calor: Nivel Sebáceo / Sensibilidad")
+    fig_sens = create_heatmap_with_users(
+        df_sens,
+        col_sens,
+        "Distribución de Niveles Sebáceos / Sensibilidad",
+        second_dimension_candidates=["esteticista", "asesor", "genero", "sexo"]
+    )
+    if fig_sens:
+        st.plotly_chart(fig_sens, use_container_width=True)
+
+# ================== SECCIONES ESPECÍFICAS ==================
 sections = [
     ("Pigmentación", ["pigementacion", "pigmentacion", "pigmentación"], "pigmentacion"),
     ("Tratamiento médico", ["tratamiento medico", "tratamiento_medico", "tratamiento_médico"], "trat_medico"),
@@ -293,42 +337,32 @@ for label, candidates, key_prefix in sections:
     
     if df_filtered is not None and col_target and not df_filtered.empty:
         st.subheader(f"📊 Mapa de Calor: {label}")
-        fig = create_heatmap(
+        fig = create_heatmap_with_users(
             df_filtered,
             col_target,
             f"Distribución de {label}",
-            second_dimension_candidates=["esteticista", "asesor", "genero", "sexo", "fecha_valoracion"]
+            second_dimension_candidates=["esteticista", "asesor", "genero", "sexo"]
         )
         if fig:
             st.plotly_chart(fig, use_container_width=True)
-            
-            # Mostrar datos en tabla
-            with st.expander(f"Ver datos detallados de {label}"):
-                st.dataframe(df_filtered[col_target].value_counts().reset_index().rename(
-                    columns={'index': label, col_target: 'Cantidad'}
-                ))
 
-# ================== MAPA DE CALOR GENERAL DE CORRELACIONES ==================
+# ================== MAPA DE CALOR DE CORRELACIONES ==================
 st.subheader("🔥 Mapa de Calor General de Correlaciones")
-
-# Seleccionar columnas numéricas para correlación
 numeric_columns = df_date.select_dtypes(include=['number']).columns.tolist()
 
 if len(numeric_columns) > 1:
     correlation_matrix = df_date[numeric_columns].corr()
     
-    fig_corr = px.imshow(
-        correlation_matrix,
-        title="Correlación entre Variables Numéricas",
-        color_continuous_scale="RdBu_r",
-        aspect="auto",
+    fig_corr = go.Figure(data=go.Heatmap(
+        z=correlation_matrix.values,
+        x=correlation_matrix.columns.tolist(),
+        y=correlation_matrix.index.tolist(),
+        colorscale=BLUE_COLORSCALE,
+        hoverinfo='z',
         zmin=-1,
         zmax=1
-    )
-    fig_corr.update_layout(
-        xaxis_title="Variables",
-        yaxis_title="Variables",
-    )
+    ))
+    fig_corr.update_layout(title="Correlación entre Variables Numéricas")
     st.plotly_chart(fig_corr, use_container_width=True)
 else:
     st.info("No hay suficientes columnas numéricas para calcular correlaciones.")
