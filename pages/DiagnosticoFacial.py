@@ -112,7 +112,6 @@ with st.sidebar:
     if col_hid is None:
         st.error("No encuentro la columna de nivel de hidratación.")
         selected_hid_levels = []
-        top_n_hid = 20
     else:
         niveles_hid = sorted(df_date[col_hid].dropna().unique().tolist())
         selected_hid_levels = st.multiselect(
@@ -121,38 +120,26 @@ with st.sidebar:
             default=niveles_hid,
             key="hid_multiselect",
         )
-        top_n_hid = st.slider(
-            "Top clientes (hidratación)",
-            min_value=5, max_value=50, value=20, step=1,
-            key="hid_topn",
-        )
 
 df_hid = df_date.copy()
 if col_hid and selected_hid_levels:
     df_hid = df_hid[df_hid[col_hid].isin(selected_hid_levels)].copy()
 
 if col_hid and selected_hid_levels:
-    if "nombre" not in df_hid.columns:
-        st.error("No encuentro la columna 'nombre' para identificar al cliente (hidratación).")
-    elif df_hid.empty:
+    if df_hid.empty:
         st.warning("No hay datos tras aplicar el filtro de hidratación.")
     else:
-        agg_hid = df_hid.groupby(["nombre", col_hid]).size().reset_index(name="n")
-        top_hid = (
-            agg_hid.groupby("nombre", as_index=False)["n"]
-                   .sum()
-                   .sort_values("n", ascending=False)
-                   .head(top_n_hid)
+        # Agrupar por nivel de hidratación y contar registros
+        agg_hid = df_hid[col_hid].value_counts().reset_index()
+        agg_hid.columns = [col_hid, 'n']
+        
+        fig_hid = px.bar(
+            agg_hid, x=col_hid, y='n', 
+            title="Distribución de nivel de hidratación",
+            hover_data={col_hid: True, "n": True},
         )
-        agg_hid_top = agg_hid[agg_hid["nombre"].isin(top_hid["nombre"])]
-        if not agg_hid_top.empty:
-            fig_hid = px.bar(
-                agg_hid_top, x="nombre", y="n", color=col_hid, barmode="group",
-                title="Distribución de nivel de hidratación por cliente",
-                hover_data={"nombre": True, col_hid: True, "n": True},
-            )
-            fig_hid.update_layout(xaxis_title="Cliente", yaxis_title="# registros")
-            st.plotly_chart(fig_hid, use_container_width=True)
+        fig_hid.update_layout(xaxis_title="Nivel de hidratación", yaxis_title="# registros")
+        st.plotly_chart(fig_hid, use_container_width=True)
 
 # ================== FILTRO + GRÁFICO: NIVEL SEBÁCEO / SENSIBILIDAD ==================
 posibles_sens = ["nivel_sebaceo", "grado_sensibilidad", "sensibilidad"]
